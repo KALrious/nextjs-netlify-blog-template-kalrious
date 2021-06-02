@@ -13,9 +13,7 @@ export default function Index() {
       <OpenGraphMeta url={'/'} />
       <TwitterCardMeta url={'/'} />
       <div className="container">
-        <Avatar>
-          <Kalrious />
-        </Avatar>
+        <Avatar />
         <div>
           <h1>
             Hi, I'm Kalrious <span className="fancy">.</span>
