@@ -20,7 +20,7 @@ export default function Index() {
           <h1>
             Hi, I'm Kalrious <span className="fancy">.</span>
           </h1>
-          <h2>And this is the our crew blog.</h2>
+          <h2>And this is our crew blog.</h2>
           <SocialList />
         </div>
       </div>

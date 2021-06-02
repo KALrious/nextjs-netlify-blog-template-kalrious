@@ -1,4 +1,4 @@
-import { AuthorContent } from '../lib/authors';
+import { AuthorContent } from '../../lib/authors';
 import styles from './Author.module.scss';
 
 type Props = {
