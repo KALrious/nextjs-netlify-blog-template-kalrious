@@ -1,11 +1,10 @@
 import { FC } from 'react';
-import Kalrious from '../../assets/Kalrious.svg';
 import styles from 'Avatar.module.scss';
 
-const Avatar: FC = ({ children }) => {
+const Avatar: FC = () => {
   return (
     <div>
-      <Kalrious />
+      <img src="images/kalrious.png" />
     </div>
   );
 };
