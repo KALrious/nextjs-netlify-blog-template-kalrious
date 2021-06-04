@@ -1,6 +1,6 @@
 {
   "base_url": "https://wutali-nextjs-netlify-blog.netlify.app",
-  "site_title": "tiptaptoc le site des tips et de tout et rien ",
+  "site_title": "tiptaptoc le site des tips de tout et rien ",
   "site_description": "blog pour parler de tout et de rien, mais surtout de rien ",
   "site_keywords": [
     {
@@ -13,7 +13,7 @@
       "keyword": "React"
     }
   ],
-  "posts_per_page": 8,
+  "posts_per_page": 5,
   "twitter_account": "@tiptaptoc",
   "github_account": "KALrious"
 }
