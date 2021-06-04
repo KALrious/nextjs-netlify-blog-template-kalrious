@@ -13,3 +13,7 @@ tags:
     name: markdown
   - slug: cheat sheet
     name: cheat sheet
+  - slug: kubernetes
+    name: kubernetes
+  - slug: docker
+    name: docker
