@@ -11,3 +11,9 @@ tags:
     name: mdx
   - slug: markdown
     name: markdown
+  - slug: cheat sheet
+    name: cheat sheet
+  - slug: kubernetes
+    name: kubernetes
+  - slug: docker
+    name: docker
