@@ -27,6 +27,17 @@ export default function Navigation() {
               </a>
             </Link>
           </li>
+          <li>
+            <Link href="/cheat-sheets">
+              <a
+                  className={
+                    router.pathname.startsWith("/cheat-sheets") ? "active" : null
+                  }
+              >
+                cheat sheet
+              </a>
+            </Link>
+          </li>
         </ul>
         <style jsx>
           {`
