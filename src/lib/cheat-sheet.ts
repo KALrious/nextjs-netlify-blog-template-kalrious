@@ -1,31 +1,23 @@
 import fs from 'fs';
 import matter from 'gray-matter';
-import path from 'path';
 import yaml from 'js-yaml';
+import path from 'path';
 
-const postsDirectory = path.join(process.cwd(), 'content/posts');
+const cheatSheetDirectory = path.join(process.cwd(), 'content/cheat-seets');
 
-export type PostContent = {
-  readonly date: string;
-  readonly title: string;
-  readonly slug: string;
-  readonly tags?: string[];
-  readonly fullPath: string;
-};
+let cache;
 
-let postCache: PostContent[];
-
-export function fetchPostContent(): PostContent[] {
-  if (postCache) {
-    return postCache;
+export function fetchContent() {
+  if (cache) {
+    return cache;
   }
   // Get file names under /posts
-  const fileNames = fs.readdirSync(postsDirectory);
-  const allPostsData = fileNames
+  const fileNames = fs.readdirSync(cheatSheetDirectory);
+  const allCheatSheetsData = fileNames
     .filter(it => it.endsWith('.mdx'))
     .map(fileName => {
       // Read markdown file as string
-      const fullPath = path.join(postsDirectory, fileName);
+      const fullPath = path.join(cheatSheetDirectory, fileName);
       const fileContents = fs.readFileSync(fullPath, 'utf8');
 
       // Use gray-matter to parse the post metadata section
@@ -37,7 +29,6 @@ export function fetchPostContent(): PostContent[] {
       const matterData = matterResult.data as {
         date: string;
         title: string;
-        tags: string[];
         slug: string;
         fullPath: string;
       };
@@ -53,22 +44,22 @@ export function fetchPostContent(): PostContent[] {
       return matterData;
     });
   // Sort posts by date
-  postCache = allPostsData.sort((a, b) => {
+  cache = allCheatSheetsData.sort((a, b) => {
     if (a.date < b.date) {
       return 1;
     } else {
       return -1;
     }
   });
-  return postCache;
+  return cache;
 }
 
-export function countPosts(tag?: string): number {
-  return fetchPostContent().filter(it => !tag || (it.tags && it.tags.includes(tag))).length;
+export function countContent(tag?: string): number {
+  return fetchContent().filter(it => !tag || (it.tags && it.tags.includes(tag))).length;
 }
 
-export function listPostContent(page: number, limit: number, tag?: string): PostContent[] {
-  return fetchPostContent()
+export function listContent(page: number, limit: number, tag?: string) {
+  return fetchContent()
     .filter(it => !tag || (it.tags && it.tags.includes(tag)))
     .slice((page - 1) * limit, page * limit);
 }

@@ -1,4 +1,4 @@
-import config from "../../config.json";
+import config from '../../config.json';
 
 type Config = {
   readonly base_url: string;
@@ -6,6 +6,7 @@ type Config = {
   readonly site_description: string;
   readonly site_keywords: { keyword: string }[];
   readonly posts_per_page: number;
+  readonly cheat_sheets_per_page: number;
   readonly twitter_account: string;
   readonly github_account: string;
 };
