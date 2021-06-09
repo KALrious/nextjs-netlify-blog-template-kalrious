@@ -1,1 +1,216 @@
-TOTO
+---
+slug: kubernetes
+title: Une Introduction à Kubernetes
+date: 2021-06-04
+author: kalrious
+tags:
+  - kubernetes
+  - docker
+---
+Il y a peu, j’ai suivi un atelier pour apprendre à faire du Kubernetes. C’est une technologie intéressante, capable d’adresser des problèmes d’architecture, de déploiement et de scaling. C’est pourquoi j’ai décidé de vous partager mon expérience.
+
+Dans cette article, nous aborderons **l‘architecture principale** de Kubernetes autour des objets qui le composent avec des exemples détaillés.
+
+### Introduction
+
+Développé par des ingénieurs Google sous le nom de Borg. Kubernetes est maintenant maintenu par la [Cloud Native Computing Foundation](https://en.wikipedia.org/wiki/Cloud_Native_Computing_Foundation). Kubernetes(K8S) est souvent utilisé comme une manière d’adresser les problèmes de déploiement et de contrôle de micros-services.
+
+K8S est un orchestrateur de containers. Dans les grandes lignes: il permet de répartir les containers sur les différents clusters. Il permet notamment d’automatiser le déploiement, le scaling et le management d’une (ou plusieurs) application(s).
+
+### Les Pods
+
+Un pods est la plus petite entité prise en charge par K8S. Il peut contenir une application ou un service. Le pod est constitué d’un (ou plusieurs) container(s) co-localisé(s). Ces containers peuvent être du Docker (choisit par défaut par K8S), mais aussi du [rkt](https://coreos.com/rkt/), du [containerd](https://containerd.io/) ou encore du [CRI-O](https://cri-o.io/).
+
+**Un Pod sera toujours sur un seul et unique node**. C’est une règle primordiale dans K8S. Le Pod vit et meurt sur le même noeud.
+
+Voici un petit exemple de Pod-template :
+
+```yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod
+  labels:
+    app: myapp
+spec:
+  containers:
+  - name: myapp-container
+    image: busybox
+```
+
+### ReplicaSets (controller)
+
+*En deux mots il sert à scaler des Pods.*
+
+Dans K8S la plupart du temps on ne crée pas de Pods directement. On utilise les ReplicaSets pour ça. \
+Les Pods ne sont ni scalable, ni fault-tolerant, c’est pour cela qu’on les associe aux contrôleurs: ReplicaSets. Un ReplicaSet doit s’assurer que le nombre spécifié de services qui s’exécutent, correspond au nombre de services demandés. Il fait correspondre les pods via des labels (cf: exemple suivant).
+
+```yml
+apiVersion: apps/v1 
+kind: ReplicaSet # New kind!
+metadata: 
+  name: hello
+  # You could also use labels for informational purpose
+spec: 
+  replicas: 2 # Number of replicas
+  # ReplicaSets and Pods are decoupled: 
+  # if Pods exist, ReplicaSet will do nothing,
+  # otherwise it will use the spec.template to create new ones
+  selector: # To select which pods should be included in the RS
+  # It does not distinguish between the Pods created by a RS or some other process
+  # It uses the spec.template.spec to instanciate more Pods (if needed)
+    matchLabels: # Must match spec.template
+      type: demo
+      service: hello
+  template: 
+    metadata:
+      labels:
+        type: demo
+        service: hello
+        language: go
+    spec: 
+      containers: 
+      - name: hello 
+        image: nocquidant/go-hello
+        livenessProbe: 
+          httpGet: 
+            path: /health
+            port: 8484
+          initialDelaySeconds: 5 
+          timeoutSeconds: 2 # Defaults to 1 
+          periodSeconds: 5 # Defaults to 10 
+          failureThreshold: 1 # Defaults to 3
+```
+
+C'est un exemple de .yml pour la création de deux replicas, de type: demo, avec le service: hello. On remarquera que le nom du service des matchLabels correspond exactement au nom du service des metadata labels. De plus, le champ kind permet de définir le type de controller que l'on veut produire.
+Quelques commandes intéressantes (à retenir):
+
+`kubectl create -f hello-rs.yml` 
+ pour creer des replicas à partir de yamel
+<br/>
+`kubectl get rs` pour afficher les replicas en cours
+<br/>
+`kubectl get pods --show-labels` pour afficher les pods en coursd'excution
+<br/>
+`kubectl delete -f hello-rs.yml` clean up
+
+### Les Services (object)
+
+*En deux mots ils servent à la communication entre Pods.*
+
+Chaque Pod a sa propre adresse IP, mais elle est volatile et susceptible de changer au cours du temps. Pour palier à ce problème, on utilise un objet Service. Il définit à la fois un ensemble logique de Pods et une façon d’y accéder.\
+Pour cibler les Pods il utilise, comme les ReplicaSets, les **labels** via une notion de Selector.
+
+#### **Différent types de services** :
+
+* Les **ClusterIP**: (le service par défaut fournie par l’objet service) C’est une adresse IP qui n’est pas dans la même plage d’adressage que les Pods, c’est une VIP avec un cycle de vie calqué sur l’objet Service.
+
+```yml
+apiVersion: v1 
+kind: Service
+metadata: 
+  name: hello-back-svc
+spec: 
+  # Default type is clusterIP, OK for internal communication
+  ports:
+  - protocol: TCP 
+    port: 8485
+  selector:
+    type: backend
+    service: hello
+```
+
+* Les **NodePort**: c’est un port ouvert sur chacun des noeuds Worker. Le trafic réseau envoyé sur ce port sera transféré vers un des Pods ciblés via le Selector du service. (basé sur ClusterIp)
+
+```yml
+apiVersion: v1 
+kind: Service
+metadata: 
+  name: hello-svc
+spec: 
+  type: NodePort
+  ports:
+  - protocol: TCP 
+    port: 8484
+    # You can specify a 'nodePort' value here (and also a 'targetPort' one)
+  selector:
+    type: frontend
+    service: hello
+```
+
+* LoadBalencer: utilisé pour une intégration avec les Clouds Provider. (création d’un elastic load balancing sur AWS, le LoadBalencer va pointer sur tous les noeuds du cluster en utilisant NodePort).
+* ExternalName: utilisé pour une intégration avec des composants d’infra qui ne font pas partie du cluster.
+
+  ### Les Deployments (controller)
+
+  *En deux mots ils servent à mettre à jour son application.*
+
+  En générale nous ne sommes pas supposés créer directement des Pods, mais des ReplicaSets, de la même manière nous ne sommes pas supposés créer directement des ReplicaSets, mais des Deployments. Le Deployment crée un ReplicaSet qui lui-même crée un (des) Pod(s).
+
+  Le Deployment est un type de controller qui est capable de mettre à jour des Pods et des ReplicaSets.
+
+  L’intérêt du Deployment est la prise en compte des changements et le redéploiement de l’application.
+
+  **Comment se passe le redéploiement lors de la déclaration d’un changement d’état:**Le Deployment crée **un nouveau** ReplicaSet avec le nouveau template. En cas de succès, il coordonne le **décommissionnement** de l’ancien ReplicaSet avec le **scaling up,** à autant de noeuds que nécessaire, du nouveau replica.
+
+```yml
+apiVersion: apps/v1 
+kind: Deployment # Only that differs from the ReplicaSet version
+metadata: 
+  name: hello
+spec: 
+  replicas: 3
+  selector:
+    matchLabels:
+      type: frontend
+      service: hello
+  template: 
+    metadata:
+      labels:
+        type: frontend
+        service: hello
+        language: go
+    spec: 
+      containers: 
+      - name: hello 
+        image: nocquidant/go-hello    
+        env:
+        - name: HELLO_REMOTE
+          value: 'hello-back-svc:8485/hello'
+        livenessProbe: 
+          httpGet: 
+            path: /health
+            port: 8484
+```
+
+On observe que la grande différence entre un ReplicaSet et un Deployement est le ***kind.*** Comment réagir lors d’erreurs en prod suite à une MEP?
+
+#### Rolling back ou forward ?
+
+L’erreur est humaine et finit toujours par s’insérer dans un build. Le choix entre un rolling back ou forward dépend de la taille de(s) erreur(s). K8S facilite les processus de MEP en **automatisant** un maximum d’étape lors du déploiement. De plus, Ils encouragent les **petits incréments** facile à corriger. C’est pour cela, qu’il encourage le **rolling forward**.
+
+Toutefois, il est aussi possible de faire du **rollback** avec K8S:
+
+`kubectl rollout undo -f <NAME_YAML> --to-revision=2` exemple de
+commande pour rollback
+
+### Les Ingress (object)
+
+*En deux mots les ingress permettent de gérer les accès depuis l’extérieur vers des services.*
+
+Les Ingress ne sont pas des types de Services, mais ils s’appuient sur les Services pour:\
+- fournir des **points d’entrée** vers le cluster\
+- intervenir au niveau de la couche HTTP\
+- positionner des règles de type reverse-proxy\
+- et pour faire du LoadBalancing
+
+### En Conclusion :
+
+Nous arrivons au termes de cette introduction à Kubernetes. \
+Pour récapituler: nous avons eu l’occasion de parcourir l’architecture principale de Kubernetes. D’un côté, nous avons évoqué les concepts de Controller qui permettent :\
+- De créer des **Pods**, pour contenir notre application.\
+- De créer des **ReplicaSet**, pour manager les Pods.\
+- De créer des **Deployments**, pour coordonner les ReplicaSets et ainsi déployer notre application.\
+De l’autre côté, nous avons évoqué la notion d’Object. Ils permettent la communication interne à l’application avec les **Services**, et la communication externe avec les **Ingress**.
+
+Finalement K8S est un outil très adapté pour découper l’application en micro-service et pour la déployer facilement dans des cloud services comme: AWS, Google cloud, IBM cloud, Microsoft Azure, Firebase …
