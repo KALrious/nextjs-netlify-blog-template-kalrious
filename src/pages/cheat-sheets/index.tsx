@@ -27,6 +27,7 @@ export default Index;
 
 export const getStaticProps: GetStaticProps = async () => {
   const cheatSheets = listContent(1, config.cheat_sheets_per_page);
+  console.log('réussi le call', cheatSheets);
   return {
     props: {
       cheatSheets,

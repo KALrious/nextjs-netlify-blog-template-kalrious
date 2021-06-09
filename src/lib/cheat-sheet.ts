@@ -3,7 +3,7 @@ import matter from 'gray-matter';
 import yaml from 'js-yaml';
 import path from 'path';
 
-const cheatSheetDirectory = path.join(process.cwd(), 'content/cheat-seets');
+const cheatSheetDirectory = path.join(process.cwd(), 'content/cheat-sheets');
 
 let cache;
 
