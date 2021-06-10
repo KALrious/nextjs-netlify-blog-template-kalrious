@@ -1,0 +1,56 @@
+---
+slug: destructuring
+title: Comment Destructurer en Javacript Typescript
+date: 2021-06-10
+author: kalrious
+---
+J'ai toujours eu un peu de mal avec cette convention alors voilà un exhaustivité d'example afin de mieux comprendre comment ça marche:\
+\
+**soit l'objet de bas suivant :**\
+
+```ts
+const myThings = { 
+    teddyBear : { color : "brown", name: "tedd" },
+    backpack: { capacity : "20L" , make : "Thule" },
+    julien: {number: 2}
+};
+```
+
+si je veux avoir accès au nom du teddy bear et renommer la variable en même temps je dois:
+
+```ts
+const {teddyBear: {name: zob }} = myThings;
+
+console.log(zob); // résultat tedd
+```
+
+Pour résumer ici on récupère le nom du teddybear lui même à l'intérieur de myThings et la variable sera renommé zob.
+
+Mais on peut aussi lui assigner une valeur par défauts: 
+```ts
+const myThings = { 
+    teddyBear : { color : "brown", name: undefined | null },
+    backpack: { capacity : "20L" , make : "Thule" },
+    julien: {number: 2}
+};
+
+const {teddyBear: {name = "petit chou"}} = myThings;
+
+console.log(name); // résultat petit chou
+```
+
+Pour résumer ici on récupère le nom du teddybear lui même à l'intérieur de myThings et si le nom est null on lui attribut la valeur par défaut petit chou.
+
+Pour aller plus loin les deux en même temps:
+
+```ts
+const myThings = { 
+    teddyBear : { color : "brown", name: "tedd" },
+    backpack: { capacity : "20L" , make : null },
+    julien: {number: 2}
+};
+
+const {teddyBear: {name: zob = "petit chou"}, backpack: { make: zobi = "petit sac" }} = myThings;
+
+console.log(zob, zobi); // résultat tedd & petit sac 
+```
