@@ -5,6 +5,7 @@ import TwitterCardMeta from '../..//components/meta/TwitterCardMeta';
 import { GetStaticProps } from 'next';
 import { listContent } from '../../lib/cheat-sheet';
 import config from '../../lib/config';
+import CheatSheetsList from '../../components/CheatSheets/CheatSheetsList';
 
 const Index = ({ cheatSheets }) => {
   const url = '/cheat-sheet';
@@ -14,11 +15,7 @@ const Index = ({ cheatSheets }) => {
       <BasicMeta url={url} title={title} />
       <OpenGraphMeta url={url} title={title} />
       <TwitterCardMeta url={url} title={title} />
-      <ul>
-        {cheatSheets.map(cheatSheet => (
-          <li>{cheatSheet.title}</li>
-        ))}
-      </ul>
+      <CheatSheetsList cheatSheets={cheatSheets} />
     </Layout>
   );
 };
