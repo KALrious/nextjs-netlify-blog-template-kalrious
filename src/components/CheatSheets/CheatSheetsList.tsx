@@ -1,23 +1,21 @@
 import { FC } from 'react';
-
-type CheatSheet = {
-  date: string;
-  title: string;
-  slug: string;
-  fullPath: string;
-};
+import CheatSheet, {Type as CheatSheetType} from "./CheatSheet";
+import styles from './CheatSheetsList.module.scss';
 
 type Type = {
-  cheatSheets: CheatSheet[];
+  cheatSheets: CheatSheetType[];
 };
 
 const CheatSheetsList: FC<Type> = ({ cheatSheets }) => (
-  <div>
-    <ul>
-      {cheatSheets.map(cheatSheet => (
-        <li>{cheatSheet.title}</li>
+  <div className={styles.cheatsheets}>
+    <ul className={styles.list} >
+      {cheatSheets.map((cheatSheet,i) => (
+        <li key={i}>
+            <CheatSheet title={cheatSheet.title} slug={cheatSheet.slug} date={cheatSheet.date} fullPath={cheatSheet.fullPath}/>
+        </li>
       ))}
     </ul>
+      <div/>
   </div>
 );
 
